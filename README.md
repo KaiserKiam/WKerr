@@ -4,4 +4,4 @@
 * Amanda
 * Jeremiah Lezama
 * William
-* Tori
+* Tori Champagne
