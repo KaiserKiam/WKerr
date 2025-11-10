@@ -1,7 +1,7 @@
 # Strava Web Programming Project
 
 ## Contributors 
-* Amanda
+* Amanda McNesby
 * Jeremiah Lezama
-* William
+* William Kerr
 * Tori Champagne
