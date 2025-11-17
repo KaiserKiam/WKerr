@@ -226,6 +226,10 @@ def add_strava_athlete_to_db():
     athlete_info = get_strava_athlete_info()
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Athletes WHERE client_id = ?", (athlete_info['id'],))
+        existing_athlete = cursor.fetchone()
+        if existing_athlete:
+            return
         cursor.execute("INSERT INTO Athletes (client_id, first_name, last_name, gender, mileage_goal, long_run_goal) VALUES (?, ?, ?, ?, ?, ?)", (athlete_info['id'], athlete_info['firstname'], athlete_info['lastname'], athlete_info['sex'], 0, 0))
         conn.commit()
     #initially makes mileage goal & lr 0 cuz it will be edited on the html page
