@@ -1,0 +1,14 @@
+[Unit]
+Description=Launch the Strava Web App
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/Amanda-Jeremaiah-William-Tori/src
+ExecStart=/Amanda-Jeremaiah-William-Tori/.venv/bin/gunicorn \
+          --bind 0.0.0.0:80 \
+          --workers 4 \
+          app:app
+
+[Install]
+WantedBy=multi-user.target
