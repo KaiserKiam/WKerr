@@ -52,7 +52,7 @@ The application will be running locally and you should see "Hello, World!" when 
 
 ## Deploy on AWS
 
-1.**Create your EC2 instance on AWS
+1. Create your EC2 instance on AWS
         
 2. SSH into your created instance
 ```bash
