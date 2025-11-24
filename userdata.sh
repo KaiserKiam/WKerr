@@ -7,6 +7,7 @@ yum install -y git python3 python3-pip
 # Remove the existing directory if it's there
 sudo rm -rf /opt/Amanda-Jeremaiah-William-Tori 
 git clone https://github.com/cs298f25/Amanda-Jeremaiah-William-Tori.git /opt/Amanda-Jeremaiah-William-Tori
+sudo chown -R ec2-user:ec2-user /opt/Amanda-Jeremaiah-William-Tori
 
 
 # 4. Change into the correct directory

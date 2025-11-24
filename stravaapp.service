@@ -11,7 +11,7 @@ Group=ec2-user
 WorkingDirectory=/opt/Amanda-Jeremaiah-William-Tori
 # Use the new, clear installation directory
 ExecStart=/opt/Amanda-Jeremaiah-William-Tori/.venv/bin/gunicorn \
-          --bind 0.0.0.0:80 \
+          --bind 0.0.0.0:8000 \
           --workers 4 \
           app:app
 # Restart if the app crashes
