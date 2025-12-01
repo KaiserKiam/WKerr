@@ -84,12 +84,12 @@ cd Amanda-Jeremaiah-William-Tori
 
 5. Change permissions on the script file
 ```bash
-chmod +x userdata.sh
+chmod +x ec2-deploy.sh
 ```     
 
 6. Run the Deploy script
 ```bash
-sudo ./userdata.sh
+sudo ./ec2-deploy.sh
 ```
 
 7. Access the Web Page
