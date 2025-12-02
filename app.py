@@ -77,9 +77,6 @@ def register_page():
 def login_action():
     username = request.form.get('username')
     password = request.form.get('password')
-
-    print(f"DEBUG: Attempting login for user: '{username}'") # <--- ADD THIS
-    print(f"DEBUG: Password received: '{password}'")
     
     # Check DB for username
     user_row = database.get_user_by_username(username)
