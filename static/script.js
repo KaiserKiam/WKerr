@@ -7,7 +7,7 @@ function formatDate(date) {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     return date.toLocaleDateString('en-US', options);
 }
-        
+
 function getWeekStart(date = new Date()) {
     const d = new Date(date);
     const day = d.getDay();
