@@ -108,6 +108,11 @@
         </div>
         <div class="footer">
             <div style="display: flex; justify-content: center; margin-top: 20px;">
+                {% if not has_strava %}
+                    <a href="/connect/strava" class="strava-btn">
+                    Connect STRAVA
+                </a>
+                {% endif %}
                 <a href="/logout" class="logout-btn">
                     Logout
                 </a>

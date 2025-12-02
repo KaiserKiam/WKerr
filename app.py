@@ -6,7 +6,6 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
-
 import database  
 import collector
 
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-key-for-testing')
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 
 # FLASK LOGIN STUFF
 
@@ -64,10 +63,6 @@ def dashboard():
     
     return render_template('index.html', user=current_user, has_strava=has_strava)
 
-# @app.route('/dummy_redirect')
-# def dummy_redirect():
-#     return render_template('index.html')
-
 @app.route('/login')
 def login_page():
     return render_template('login.html')
@@ -82,35 +77,19 @@ def register_page():
 def login_action():
     username = request.form.get('username')
     password = request.form.get('password')
+
+    print(f"DEBUG: Attempting login for user: '{username}'") # <--- ADD THIS
+    print(f"DEBUG: Password received: '{password}'")
     
     # Check DB for username
     user_row = database.get_user_by_username(username)
-    is_a_user = database.user_login(username, password) #returns True if user exists and password is correct, False if not
+    is_valid_password = database.validate_password(username, password)
     
     # Check Password Hash
-    if user_row and is_a_user:
+    if user_row and is_valid_password:
         user_obj = User(id=user_row['id'], username=user_row['username'])
         login_user(user_obj)
-        
-        # Sync activities in background thread (non-blocking)
-        def sync_activities():
-            try:
-                date = database.get_most_recent_activity_date_by_username(username)
-                if date:
-                    collector.add_new_activities_to_db(username, date)
-                    logger.info(f"Successfully synced new activities for user: {username}")
-                else:
-                    collector.add_initial_activities_to_db(username)
-                    logger.info(f"Successfully synced initial activities for user: {username}")
-            except Exception as e:
-                # Log error but don't prevent login
-                logger.error(f"Error syncing activities for {username}: {e}", exc_info=True)
-        
-        # Start sync in background thread
-        sync_thread = threading.Thread(target=sync_activities)
-        sync_thread.start()
-        
-        flash("Logged in successfully. Activity sync in progress...", "info")
+
         return redirect(url_for('dashboard'))
         
     flash("Invalid credentials")
@@ -120,95 +99,26 @@ def login_action():
 def register_action():
     username = request.form.get('username')
     password = request.form.get('password')
-    strava_athlete_id = request.form.get('stravaAthleteId')
-    strava_access_token = request.form.get('stravaAccessToken')
-    strava_refresh_token = request.form.get('stravaRefreshToken')
     
     # Save to DB (password will be hashed inside create_user)
     try:
         new_user_id = database.create_user(
             username, 
-            password,  # Plain password - will be hashed in database.py
-            strava_athlete_id,
-            strava_access_token,
-            strava_refresh_token
+            password
         )
         
         # Log them in immediately
         user_obj = User(id=new_user_id, username=username)
         login_user(user_obj)
         
-        # Sync athlete info and activities in background thread (non-blocking)
-        def sync_strava_data():
-            try:
-                logger.info(f"=== Starting Strava sync for user: {username} ===")
-                
-                # Create athlete row first if it doesn't exist
-                athlete_row = database.get_row_from_athletes_table(username)
-                if not athlete_row:
-                    logger.info(f"Creating athlete row for user: {username}")
-                    database.create_athlete_at_registration(username)
-                else:
-                    logger.info(f"Athlete row already exists for user: {username}")
-                
-                # Verify credentials exist before proceeding
-                client_id = database.get_client_id_from_username(username)
-                client_secret = database.get_client_secret_by_username(username)
-                refresh_token = database.get_refresh_token_by_username(username)
-                
-                logger.info(f"Credentials check - client_id: {client_id}, has_secret: {bool(client_secret)}, has_refresh: {bool(refresh_token)}")
-                
-                if not all([client_id, client_secret, refresh_token]):
-                    raise ValueError(f'Missing Strava credentials - client_id: {bool(client_id)}, secret: {bool(client_secret)}, refresh: {bool(refresh_token)}')
-                
-                # Try to update athlete info (non-blocking - if it fails, continue to activities)
-                try:
-                    logger.info(f"Updating athlete info for user: {username}")
-                    collector.update_athlete_info_in_db(username)
-                    logger.info(f"Successfully updated athlete info for user: {username}")
-                except Exception as e:
-                    logger.warning(f"Failed to update athlete info for {username}: {e}. Continuing to fetch activities...")
-                
-                # Fetch activities (this is the important part)
-                logger.info(f"Fetching initial activities for user: {username}")
-                collector.add_initial_activities_to_db(username)
-                logger.info(f"Successfully synced initial activities for user: {username}")
-                logger.info(f"=== Completed Strava sync for user: {username} ===")
-            except Exception as e:
-                # Log error but don't prevent registration/login
-                logger.error(f"ERROR syncing Strava data for {username}: {e}", exc_info=True)
-                import traceback
-                logger.error(f"Full traceback: {traceback.format_exc()}")
-                print(f"ERROR in background thread: {e}")
-                print(traceback.format_exc())
-        
-        # Start sync in background thread
-        sync_thread = threading.Thread(target=sync_strava_data, daemon=True)
-        sync_thread.start()
-        logger.info(f"Started background thread for Strava sync (thread ID: {sync_thread.ident})")
-        print(f"DEBUG: Started background thread for user: {username}")
-        
-        flash("Registration successful! Syncing your Strava data...", "info")
         return redirect(url_for('dashboard'))
         
     except ValueError as e:
-        # User already exists or other validation error
-        # Check if this is a fetch request (by checking if Accept header includes json or if it's an XHR)
-        accepts_json = 'application/json' in request.headers.get('Accept', '')
-        is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        
-        if accepts_json or is_xhr:
-            return jsonify({'error': str(e)}), 400
-        flash(f"Error: {e}")
+        print(str(e))
         return redirect(url_for('register_page'))
+    
     except Exception as e:
-        # Other errors
-        accepts_json = 'application/json' in request.headers.get('Accept', '')
-        is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        
-        if accepts_json or is_xhr:
-            return jsonify({'error': str(e)}), 500
-        flash(f"Error: {e}")
+        print(str(e))
         return redirect(url_for('register_page'))
 
 @app.route('/logout')
@@ -277,12 +187,14 @@ def get_activities_data():
     athlete_row = database.get_row_from_athletes_table(current_user.username)
     mileage_goal = athlete_row.get('mileage_goal', 0) if athlete_row else 0
     long_run_goal = athlete_row.get('long_run_goal', 0) if athlete_row else 0
+    has_strava = database.user_has_strava(current_user.id)
     
     # Return JSON response with activities and goals
     return jsonify({
         'activities': activities,
         'mileage_goal': mileage_goal,
-        'long_run_goal': long_run_goal
+        'long_run_goal': long_run_goal,
+        'has_strava' : has_strava
     })
 
 @app.route('/api/debug/sync')
@@ -336,8 +248,6 @@ def manual_sync():
         }), 500
 
 if __name__ == "__main__":
-    # Ensure DB tables exist before starting
     database.init_db() 
     print("Database Started")
-    # IMPORTANT: Run on port 8000 to match Strava callback
     app.run(debug=True, host='0.0.0.0', port=8000)

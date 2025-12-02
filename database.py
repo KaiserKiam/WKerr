@@ -11,19 +11,19 @@ def init_db():
         
         #Resetting the tables each time collector is run to maintain known state
         #these 3 lines will be commented out when we are done testing
-        cursor.execute("DROP TABLE IF EXISTS Users")
-        cursor.execute("DROP TABLE IF EXISTS DailyMileage")
-        cursor.execute("DROP TABLE IF EXISTS Athletes")
+        #cursor.execute("DROP TABLE IF EXISTS Users")
+        #cursor.execute("DROP TABLE IF EXISTS DailyMileage")
+        #cursor.execute("DROP TABLE IF EXISTS Athletes")
         
         # User table
         cursor.execute("""
-        CREATE TABLE Users (
+        CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username VARCHAR(50) UNIQUE NOT NULL,
             password_hash VARCHAR(128) NOT NULL,
                        
             strava_athlete_id INTEGER UNIQUE,
-            client_secret TEXT,
+            strava_access_token TEXT,
             strava_refresh_token TEXT,
             token_expiration INTEGER
         )
@@ -31,7 +31,7 @@ def init_db():
 
         # Athlete table
         cursor.execute("""
-        CREATE TABLE Athletes (
+        CREATE TABLE IF NOT EXISTS  Athletes (
             user_id INTEGER PRIMARY KEY,
             first_name VARCHAR(50),
             last_name VARCHAR(50),
@@ -44,7 +44,7 @@ def init_db():
 
         # DailyMileage table
         cursor.execute("""
-        CREATE TABLE DailyMileage (
+        CREATE TABLE IF NOT EXISTS  DailyMileage (
             user_id INTEGER,
             activity_id INTEGER PRIMARY KEY AUTOINCREMENT,
             date DATE,
@@ -87,21 +87,22 @@ def get_user_by_username(username):
     return dict(row) if row else None
 
 
-def create_user(username, password, strava_athlete_id, client_secret, strava_refresh_token):
+def create_user(username, password):
     """Create a new user. Returns the new user's ID."""
     # Hash the password using werkzeug's secure hashing
     #should probably hash the tokens, but need to find a way to retrieve them later
     if check_if_user_exists(username):
         raise ValueError("User already exists")
     
-    hashed_pw = generate_password_hash(password)
+    password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+
     conn = get_connection()
     cursor = conn.cursor()
     
     try:
         cursor.execute(
-            "INSERT INTO Users (username, password_hash, strava_athlete_id, client_secret, strava_refresh_token) VALUES (?, ?, ?, ?, ?)",
-            (username, hashed_pw, strava_athlete_id, client_secret, strava_refresh_token)
+            "INSERT INTO Users (username, password_hash) VALUES (?, ?)",
+            (username, password_hash)
         )
         user_id = cursor.lastrowid
         conn.commit()
@@ -131,14 +132,14 @@ def user_has_strava(user_id):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT client_secret FROM Users WHERE id = ?",
-        (user_id,)
+        "SELECT strava_access_token FROM Users WHERE id = ?",
+        [user_id]
     )
     row = cursor.fetchone()
     conn.close()
-    return row is not None and row['client_secret'] is not None
+    return row is not None and row[0] is not None
 
-def user_login(username, password):
+def validate_password(username, password):
     """Login a user. Returns True/False."""
     user_row = get_user_by_username(username)
     if user_row and check_password_hash(user_row['password_hash'], password):
