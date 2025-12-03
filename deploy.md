@@ -54,16 +54,13 @@ To deploy and run the application locally, follow these steps:
 1. Create your EC2 instance on AWS-
 Paste this into your User Data when creating the instance:
 ```bash
-yum install -y git
-git clone https://github.com/cs298f25/Amanda-Jeremaiah-William-Tori.git
-cd /Amanda-Jeremaiah-William-Tori
+#!/bin/bash
+yum update -y
+yum install -y git python3 python3-pip
+git clone https://github.com/cs298f25/Amanda-Jeremaiah-William-Tori.git /home/ec2-user/Amanda-Jeremaiah-William-Tori
+cd /home/ec2-user/Amanda-Jeremaiah-William-Tori
 chmod +x ec2-deploy.sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp stravaapp.service /etc/systemd/system
-systemctl enable stravaapp.service
-systemctl start stravaapp.service
+./ec2-deploy.sh
 ```
         
 3. SSH into your created instance
