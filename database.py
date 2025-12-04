@@ -12,9 +12,9 @@ def init_db():
         
         #Resetting the tables each time collector is run to maintain known state
         #these 3 lines will be commented out when we are done testing
-        cursor.execute("DROP TABLE IF EXISTS Users")
-        cursor.execute("DROP TABLE IF EXISTS DailyMileage")
-        cursor.execute("DROP TABLE IF EXISTS Athletes")
+        # cursor.execute("DROP TABLE IF EXISTS Users")
+        # cursor.execute("DROP TABLE IF EXISTS DailyMileage")
+        # cursor.execute("DROP TABLE IF EXISTS Athletes")
         
         # User table
         cursor.execute("""
