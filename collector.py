@@ -115,13 +115,13 @@ def fetch_and_save_user_data(user_id):
         for activity in activities:
             miles = round(activity['distance'] * 0.000621371, 2)
             date_str = activity['start_date_local'].split('T')[0]
-            activity_id = activity['id']
+            title = activity['name']
 
             database.create_activity(
                 user_id=user_id,
                 date=date_str,
                 distance=miles,
-                activity_id = activity_id
+                title=title
 
             )
             count += 1
