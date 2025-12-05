@@ -12,6 +12,7 @@ import collector
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__) 
 
+database.init_db()
 load_dotenv()
 
 app = Flask(__name__)
