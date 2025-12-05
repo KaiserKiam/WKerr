@@ -187,6 +187,4 @@ def get_activities_data():
     })
 
 if __name__ == "__main__":
-    database.init_db() 
-    print("Database Started")
     app.run(debug=True, host='0.0.0.0', port=8000)
