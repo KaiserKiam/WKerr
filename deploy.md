@@ -50,6 +50,12 @@ To deploy and run the application locally, follow these steps:
 
 
 ## Deploy on AWS
+Before deploying, your `.env` will need the following:
+* `STRAVA_CLIENT_ID=<insert>`
+* `STRAVA_CLIENT_SECRET=<insert>`
+* `STRAVA_REFRESH_TOKEN=<insert>'
+* `FLASK_SECRET_KEY=<insert>'
+* `ENCRYPTION_KEY=<insert>`
 
 1. Create your EC2 instance on AWS-
 Paste this into your User Data when creating the instance:
@@ -60,7 +66,7 @@ yum install -y git python3 python3-pip
 git clone https://github.com/cs298f25/Amanda-Jeremaiah-William-Tori.git /home/ec2-user/Amanda-Jeremaiah-William-Tori
 cd /home/ec2-user/Amanda-Jeremaiah-William-Tori
 chmod +x ec2-deploy.sh
-./ec2-deploy.sh
+sudo ./ec2-deploy.sh
 ```
         
 3. SSH into your created instance
@@ -94,6 +100,32 @@ sudo ./ec2-deploy.sh
 http://[your-public-ip]:8000
 ```
 
+**Systemctl commands**
+```bash
+# Start the service
+sudo systemctl start flask-app
+
+# Stop the service
+sudo systemctl stop flask-app
+
+# Restart the service
+sudo systemctl restart flask-app
+
+# Check status
+sudo systemctl status flask-app
+
+# View logs (live)
+sudo journalctl -u flask-app -f
+
+# View recent logs
+sudo journalctl -u flask-app -n 50
+
+# Disable auto-start on boot
+sudo systemctl disable flask-app
+
+# Enable auto-start on boot
+sudo systemctl enable flask-app
+```
 
 
 
