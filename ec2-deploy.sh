@@ -5,7 +5,7 @@ echo "--- Installing Python ---"
 sudo yum install -y python3-pip
 
 
-# 2. Create virtual environment and install dependencies
+# 2. Create a virtual environment and install dependencies
 echo "--- Creating Virtual Environment ---"
 python3 -m venv .venv
 source .venv/bin/activate
@@ -13,10 +13,6 @@ pip install --upgrade pip
 echo "--- Installing Dependencies ---"
 pip install -r requirements.txt
 echo "--- Dependencies Installed ---"
-
-# 3. Initialize database tables
-# echo "--- Initializing Database Tables ---"
-#python3 setup_db.py 
 deactivate
 
 # 4. Copy the service file and start the service
