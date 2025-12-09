@@ -53,8 +53,8 @@ To deploy and run the application locally, follow these steps:
 Before deploying, your `.env` will need the following:
 * `STRAVA_CLIENT_ID=<insert>`
 * `STRAVA_CLIENT_SECRET=<insert>`
-* `STRAVA_REFRESH_TOKEN=<insert>'
-* `FLASK_SECRET_KEY=<insert>'
+* `STRAVA_REFRESH_TOKEN=<insert>`
+* `FLASK_SECRET_KEY=<insert>`
 * `ENCRYPTION_KEY=<insert>`
 
 1. Create your EC2 instance on AWS-
